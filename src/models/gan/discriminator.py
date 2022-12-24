@@ -1,7 +1,10 @@
 from torch import nn
 
+
 def get_discriminator_block(input_dim, output_dim):
-    """Function for returning a neural network of the discriminator block given input and output dimensions.
+    """Function for returning a neural network of the discriminator block given input and output 
+    dimensions.
+
     Parameters:
         input_dim: the dimension of the input vector, a scalar
         output_dim: the dimension of the output vector, a scalar
@@ -12,6 +15,7 @@ def get_discriminator_block(input_dim, output_dim):
     """
     return nn.Sequential(nn.Linear(input_dim, output_dim), nn.LeakyReLU(negative_slope=0.2))
 
+
 class Discriminator(nn.Module):
     """
     Discriminator Class
@@ -21,20 +25,23 @@ class Discriminator(nn.Module):
         hidden_dim: the inner dimension, a scalar
     """
     def __init__(self, im_dim=784, hidden_dim=128):
-        super(Discriminator, self).__init__()
+        super().__init__()
         self.disc = nn.Sequential(
             get_discriminator_block(im_dim, hidden_dim * 4),
             get_discriminator_block(hidden_dim * 4, hidden_dim * 2),
             get_discriminator_block(hidden_dim * 2, hidden_dim),
             nn.Linear(hidden_dim, 1),
         )
+        
     def forward(self, image):
         """Function for completing a forward pass of the discriminator: Given an image tensor, 
         returns a 1-dimension tensor representing fake/real.
+
         Parameters:
             image: a flattened image tensor with dimension (im_dim)
         """
         return self.disc(image)
+
 
 if __name__ == "__main__":
     _ = Discriminator()
