@@ -1,0 +1,4 @@
+_target_: src.datamodules.gan_mnist_datamodule.GANMNISTDataModule
+data_dir: ${paths.data_dir}
+batch_size: 128
+num_workers: 0

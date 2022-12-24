@@ -1,0 +1,19 @@
+_target_: src.models.gan.model.GAN
+
+optimizer:
+  _target_: torch.optim.Adam
+  _partial_: true
+  lr: 0.00001
+
+gen:
+  _target_: src.models.gan.generator.Generator
+  z_dim: 64
+  im_dim: 784
+  hidden_dim: 128
+
+disc:
+  _target_: src.models.gan.discriminator.Discriminator
+  im_dim: 784
+  hidden_dim: 128
+
+z_dim: 64
