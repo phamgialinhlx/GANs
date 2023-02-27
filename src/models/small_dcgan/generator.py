@@ -36,9 +36,6 @@ class Generator(nn.Module):
         out = self.gen_layer3(out)
         return out
 
-def get_noise(n_samples, z_dim, device='cpu'):
-    return torch.randn(n_samples, z_dim, device=device)
-
 if __name__ == "__main__":
     z_dim = 64
     gen = Generator(z_dim=z_dim)

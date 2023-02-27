@@ -1,15 +1,15 @@
-_target_: src.datamodules.gan_mnist_datamodule.GANMNISTDataModule
+_target_: src.datamodules.fashion_mnist_datamodule.FASHIONMNISTDataModule
 data_dir: ${paths.data_dir}
 batch_size: 128
-num_workers: 0
+num_workers: 12
 
 transform:
   _target_: torchvision.transforms.Compose
   transforms:
     - _target_: torchvision.transforms.RandomAffine
-      degrees: 20
-      translate: [0.2, 0.2]
+      degrees: 10
+      translate: [0.1, 0.1]
     - _target_: torchvision.transforms.ToTensor
     - _target_: torchvision.transforms.Normalize
-      mean: [0.0,]
-      std: [1.0,]
+      mean: [0.5,]
+      std: [0.5,]
