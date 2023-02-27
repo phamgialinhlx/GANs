@@ -1,19 +1,6 @@
 import torch
 from torch import nn
 
-
-def get_noise(n_samples, z_dim, device='cpu'):
-    '''
-    Function for creating noise vectors: Given the dimensions (n_samples, z_dim)
-    creates a tensor of that shape filled with random numbers from the normal distribution.
-    Parameters:
-        n_samples: the number of samples to generate, a scalar
-        z_dim: the dimension of the noise vector, a scalar
-        device: the device type
-    '''
-    return torch.randn(n_samples, z_dim, device=device)
-
-
 class Generator(nn.Module):
     def __init__(self, z_dim=10, im_chan=1, hidden_dim=64):
         super(Generator, self).__init__()
@@ -39,9 +26,6 @@ class Generator(nn.Module):
                 nn.Tanh()                
             )
 
-    def unsqueeze_noise(self, noise):
-        return noise.view(len(noise), self.z_dim, 1, 1)
-
     def forward(self, noise):
         # x = self.unsqueeze_noise(noise)
         out = self.gen_layer0(noise)
@@ -53,7 +37,7 @@ class Generator(nn.Module):
         return out
 
 if __name__ == "__main__":
-    z_dim = 50
+    z_dim = 100
     gen = Generator(z_dim=z_dim)
     noise = torch.rand(128, z_dim, 1, 1)
     print(noise.shape)
