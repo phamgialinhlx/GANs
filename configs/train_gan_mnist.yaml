@@ -6,7 +6,8 @@ defaults:
   - _self_
   - datamodule: gan_mnist.yaml #TODO: change this
   - model: gan.yaml
-  - logger: null # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
+  - callbacks: gan.yaml
+  - logger: wandb # set logger here or use command line (e.g. `python train.py logger=tensorboard`)
   - trainer: default.yaml
   - paths: default.yaml
   - hydra: default.yaml
@@ -24,4 +25,4 @@ train: True
 ckpt_path: null
 
 # seed for random number generators in pytorch, numpy and python.random
-seed: null
+seed: 0

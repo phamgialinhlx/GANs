@@ -1,29 +1,12 @@
 from torch import nn
+from pytorch_lightning import LightningModule
 
 
 def get_discriminator_block(input_dim, output_dim):
-    """Function for returning a neural network of the discriminator block given input and output 
-    dimensions.
-
-    Parameters:
-        input_dim: the dimension of the input vector, a scalar
-        output_dim: the dimension of the output vector, a scalar
-    Returns:
-        a discriminator neural network layer, with a linear transformation 
-          followed by an nn.LeakyReLU activation with negative slope of 0.2 
-          (https://pytorch.org/docs/master/generated/torch.nn.LeakyReLU.html)
-    """
     return nn.Sequential(nn.Linear(input_dim, output_dim), nn.LeakyReLU(negative_slope=0.2))
 
 
-class Discriminator(nn.Module):
-    """
-    Discriminator Class
-    Values:
-        im_dim: the dimension of the images, fitted for the dataset used, a scalar
-            (MNIST images are 28x28 = 784: default)
-        hidden_dim: the inner dimension, a scalar
-    """
+class Discriminator(LightningModule):
     def __init__(self, im_dim=784, hidden_dim=128):
         super().__init__()
         self.disc = nn.Sequential(
@@ -34,14 +17,10 @@ class Discriminator(nn.Module):
         )
         
     def forward(self, image):
-        """Function for completing a forward pass of the discriminator: Given an image tensor, 
-        returns a 1-dimension tensor representing fake/real.
-
-        Parameters:
-            image: a flattened image tensor with dimension (im_dim)
-        """
         return self.disc(image)
 
+    # def on_backward(self, use_amp, loss, optimizer):
+    #     loss.backward(retain_graph=True)
 
 if __name__ == "__main__":
     _ = Discriminator()

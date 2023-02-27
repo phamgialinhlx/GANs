@@ -125,7 +125,7 @@ def instantiate_loggers(logger_cfg: DictConfig) -> List[LightningLoggerBase]:
         if isinstance(lg_conf, DictConfig) and "_target_" in lg_conf:
             log.info(f"Instantiating logger <{lg_conf._target_}>")
             logger.append(hydra.utils.instantiate(lg_conf))
-
+    print("hello")
     return logger
 
 

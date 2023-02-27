@@ -1,0 +1,21 @@
+_target_: src.models.dcgan.model.DCGAN
+
+# optimizer:
+#   _target_: torch.optim.Adam
+#   _partial_: true
+#   betas: [0.5, 0.99]
+
+gen:
+  _target_: src.models.dcgan.generator.Generator
+  z_dim: 100
+  im_chan: 1
+  hidden_dim: 64
+
+disc:
+  _target_: src.models.dcgan.discriminator.Discriminator
+  im_chan: 1
+  hidden_dim: 64
+
+lr: 0.0002
+z_dim: 100
+device: 'cuda'

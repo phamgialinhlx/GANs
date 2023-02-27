@@ -39,14 +39,14 @@ import pytorch_lightning as pl
 from omegaconf import DictConfig
 from pytorch_lightning import Callback, LightningDataModule, LightningModule, Trainer
 from pytorch_lightning.loggers import LightningLoggerBase
-
+from pytorch_lightning.loggers import WandbLogger
 from src import utils
 
 log = utils.get_pylogger(__name__)
 
 
 @hydra.main(version_base="1.3", config_path="../configs", config_name="train_gan_mnist.yaml")
-def main(cfg: DictConfig) -> Optional[float]:
+def main(cfg: DictConfig):
 
      # set seed for random number generators in pytorch, numpy and python.random
     if cfg.get("seed"):
@@ -58,16 +58,25 @@ def main(cfg: DictConfig) -> Optional[float]:
     log.info(f"Instantiating model <{cfg.model._target_}>")
     model: LightningModule = hydra.utils.instantiate(cfg.model)
 
+    log.info("Instantiating callbacks...")
+    callbacks: List[Callback] = utils.instantiate_callbacks(cfg.get("callbacks"))
+
     log.info("Instantiating loggers...")
+    # wandb_logger = WandbLogger(project=cfg.wandb.project)
+    # logger: List[LightningLoggerBase] = utils.instantiate_loggers(cfg.get("logger"))
     logger: List[LightningLoggerBase] = utils.instantiate_loggers(cfg.get("logger"))
 
+    logger[0].watch(model)
+    
+
     log.info(f"Instantiating trainer <{cfg.trainer._target_}>")
-    trainer: Trainer = hydra.utils.instantiate(cfg.trainer)
+    trainer: Trainer = hydra.utils.instantiate(cfg.trainer, callbacks=callbacks, logger=logger)
 
     object_dict = {
         "cfg": cfg,
         "datamodule": datamodule,
         "model": model,
+        "callbacks": callbacks,
         "logger": logger,
         "trainer": trainer,
     }

@@ -5,7 +5,7 @@ from pytorch_lightning import LightningDataModule
 from torch.utils.data import ConcatDataset, DataLoader, Dataset, random_split
 from torchvision.datasets import MNIST
 from torchvision.transforms import transforms
-
+from torch import Tensor
 
 class GANMNISTDataModule(LightningDataModule):
     """Example of LightningDataModule for MNIST dataset.
@@ -38,19 +38,16 @@ class GANMNISTDataModule(LightningDataModule):
     def __init__(
         self,
         data_dir: str = "data/",
-        batch_size: int = 64,
+        batch_size: int = 128,
         num_workers: int = 0,
+        transform: Tensor = None,
     ):
         super().__init__()
 
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt
         self.save_hyperparameters(logger=False)
-
-        # data transformations
-        self.transforms = transforms.Compose(
-            [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
-        )
+        self.transforms = transform
 
     def prepare_data(self):
         """Download data if needed.
@@ -67,8 +64,7 @@ class GANMNISTDataModule(LightningDataModule):
         careful not to execute things like random split twice!
         """
         if stage == "fit" or stage is None:
-            mnist_full = MNIST(self.hparams.data_dir, train=True, transform=self.transforms)
-            self.data_train, self.data_val = random_split(mnist_full, [55000, 5000])
+            self.data_train = MNIST(self.hparams.data_dir, train=True, transform=self.transforms)
 
         if stage == "test" or stage is None:
             self.data_test = MNIST(self.hparams.data_dir, train=False, transform=self.transforms)
@@ -79,13 +75,7 @@ class GANMNISTDataModule(LightningDataModule):
             batch_size=self.hparams.batch_size,
             num_workers=self.hparams.num_workers,
             shuffle=True,
-        )
-
-    def val_dataloader(self):
-        return DataLoader(
-            dataset=self.data_train,
-            batch_size=self.hparams.batch_size,
-            num_workers=self.hparams.num_workers,
+            drop_last=True
         )
 
     def test_dataloader(self):
@@ -101,6 +91,10 @@ if __name__ == "__main__":
     import pyrootutils
 
     root = pyrootutils.setup_root(__file__, pythonpath=True)
-    cfg = omegaconf.OmegaConf.load(root / "configs" / "datamodule" / "gan_mnist.yaml")
+    cfg = omegaconf.OmegaConf.load(root / "configs" / "datamodule" / "dcgan_mnist.yaml")
     cfg.data_dir = str(root / "data")
     _ = hydra.utils.instantiate(cfg)
+    _.setup()
+    features, labels = next(iter(_.train_dataloader()))
+    print(features.shape)
+    print(len(labels))
