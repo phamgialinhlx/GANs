@@ -1,5 +1,7 @@
 _target_: src.datamodules.fashion_mnist_datamodule.FASHIONMNISTDataModule
 data_dir: ${paths.data_dir}
+img_dims: 1
+img_size: 28
 batch_size: 128
 num_workers: 12
 
@@ -7,8 +9,8 @@ transform:
   _target_: torchvision.transforms.Compose
   transforms:
     - _target_: torchvision.transforms.RandomAffine
-      degrees: 10
-      translate: [0.1, 0.1]
+      degrees: 0
+      translate: [0.0, 0.0]
     - _target_: torchvision.transforms.ToTensor
     - _target_: torchvision.transforms.Normalize
       mean: [0.5,]

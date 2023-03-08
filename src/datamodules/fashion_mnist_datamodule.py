@@ -11,22 +11,16 @@ class FASHIONMNISTDataModule(LightningDataModule):
     def __init__(
         self,
         data_dir: str = "data/",
+        img_dims:int = 1,
         batch_size: int = 128,
         num_workers: int = 0,
         transform: Tensor = None,
     ):
         super().__init__()
-
-        # this line allows to access init params with 'self.hparams' attribute
-        # also ensures init params will be stored in ckpt
         self.save_hyperparameters(logger=False)
         self.transforms = transform
 
     def prepare_data(self):
-        """Download data if needed.
-
-        Do not use it to assign state (self.x = y).
-        """
         FashionMNIST(self.hparams.data_dir, train=True, download=True)
         FashionMNIST(self.hparams.data_dir, train=False, download=True)
 
@@ -53,7 +47,7 @@ class FASHIONMNISTDataModule(LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(
-            dataset=self.data_train,
+            dataset=self.data_test,
             batch_size=self.hparams.batch_size,
             num_workers=self.hparams.num_workers,
         )

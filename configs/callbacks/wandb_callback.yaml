@@ -1,2 +1,10 @@
 wandb_callback:
   _target_: src.utils.callback.WandbCallback.WandbCallback
+  z_dim: 64
+  batch_size: 128
+  im_chan: 1
+  img_size: 28
+  # z_dim: 100
+  # batch_size: 128
+  # im_chan: 1
+  # img_size: 64

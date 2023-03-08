@@ -1,17 +1,17 @@
-_target_: src.datamodules.gan_mnist_datamodule.GANMNISTDataModule
+_target_: src.datamodules.gender_datamodule.GenderDataModule
+
 data_dir: ${paths.data_dir}
-img_dims: 1
+img_dims: 3
 img_size: 64
-batch_size: 128
+batch_size: 64
 num_workers: 12
 
 transform:
   _target_: torchvision.transforms.Compose
   transforms:
-    - _target_: torchvision.transforms.RandomAffine
-      degrees: 0
-      translate: [0.0, 0.0]
     - _target_: torchvision.transforms.Resize
+      size: ${datamodule.img_size}
+    - _target_: torchvision.transforms.CenterCrop
       size: ${datamodule.img_size}
     - _target_: torchvision.transforms.ToTensor
     - _target_: torchvision.transforms.Normalize

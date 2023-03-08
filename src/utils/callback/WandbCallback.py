@@ -6,18 +6,20 @@ import pytorch_lightning as pl
 from typing import Any
 from torchmetrics.image.fid import FrechetInceptionDistance
 import cv2
+from utils.noise import get_noise
 
 class WandbCallback(Callback):
-    def __init__(self, z_dim:int = 64, batch_size=128):
-        self.size = (1, 28, 28)
-        self.z_dim = z_dim
+    def __init__(self, z_dim:int = 64, batch_size=128, im_chan:int = 1, img_size:int = 28):
+        self.size = [im_chan, img_size, img_size]
+        # self.size = (1, 28, 28)
+        self.z_dim = z_dim #z_dim
         self.batch_size = batch_size
         self.step = 500
         self.last_batch = None
         self.fid = FrechetInceptionDistance(feature=64)
 
     def on_train_epoch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule"):
-        fake_noise = torch.randn(self.batch_size, self.z_dim, device = 'cuda') # get noise
+        fake_noise = get_noise(self.batch_size, self.z_dim, device = 'cuda') # get noise
         # get the image from your model or dataloader
         # with trainer.model.eval():
         fake = trainer.model(fake_noise)
