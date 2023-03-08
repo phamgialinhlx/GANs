@@ -4,50 +4,55 @@ from torch import nn
 class Generator(nn.Module):
     def __init__(self, z_dim=10, im_chan=1, hidden_dim=64):
         super(Generator, self).__init__()
+
         self.z_dim = z_dim
-
-        self.gen_layer0 = self.make_gen_block(z_dim, hidden_dim * 16, kernel_size=4, stride=1, padding=0)
-        self.gen_layer1 = self.make_gen_block(hidden_dim * 16, hidden_dim * 8, kernel_size=4, stride=2)
-        self.gen_layer2 = self.make_gen_block(hidden_dim * 8, hidden_dim * 4, kernel_size=4, stride=2)
-        self.gen_layer3 = self.make_gen_block(hidden_dim * 4, hidden_dim * 2, kernel_size=4, stride=2)
-        self.gen_layer4 = self.make_gen_block(hidden_dim * 2, im_chan, kernel_size=4, final_layer=True)
-
-
-    def make_gen_block(self, input_channels, output_channels, kernel_size=3, stride=2, padding=1, final_layer=False):
-        if not final_layer:
-            return nn.Sequential(
-                nn.ConvTranspose2d(input_channels, output_channels, kernel_size, stride, padding),
-                nn.BatchNorm2d(output_channels),
-                nn.ReLU()
-            )
-        else: # Final Layer
-            return nn.Sequential(
-                nn.ConvTranspose2d(input_channels, output_channels, kernel_size, stride, padding),
-                nn.Tanh()                
-            )
+        self.gen = nn.Sequential(
+            # input is Z, going into a convolution
+            nn.ConvTranspose2d(z_dim, hidden_dim * 8, 4, 1, 0, bias=False),
+            nn.BatchNorm2d(hidden_dim * 8),
+            nn.ReLU(True),
+            # state size. (ngf*8) x 4 x 4
+            nn.ConvTranspose2d(hidden_dim * 8, hidden_dim * 4, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(hidden_dim * 4),
+            nn.ReLU(True),
+            # state size. (ngf*4) x 8 x 8
+            nn.ConvTranspose2d(hidden_dim * 4, hidden_dim * 2, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(hidden_dim * 2),
+            nn.ReLU(True),
+            # state size. (ngf*2) x 16 x 16
+            nn.ConvTranspose2d(hidden_dim * 2, hidden_dim, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(hidden_dim),
+            nn.ReLU(True),
+            # state size. (ngf) x 32 x 32
+            nn.ConvTranspose2d(hidden_dim, im_chan, 4, 2, 1, bias=False),
+            nn.Tanh()
+            # state size. (nc) x 64 x 64
+        )
 
     def forward(self, noise):
-        # x = self.unsqueeze_noise(noise)
-        out = self.gen_layer0(noise)
-        out = self.gen_layer1(out)
-        out = self.gen_layer2(out)
-        out = self.gen_layer3(out)
-        out = self.gen_layer4(out)
+        x = noise.view(len(noise), self.z_dim, 1, 1)
+        # out = self.gen_layer0(x)
+        # out = self.gen_layer1(out)
+        # out = self.gen_layer2(out)
+        # out = self.gen_layer3(out)
+        # out = self.gen_layer4(out)
         
-        return out
-
+        # return out
+        return self.gen(x)
+    
 if __name__ == "__main__":
     z_dim = 100
-    gen = Generator(z_dim=z_dim)
-    noise = torch.rand(128, z_dim, 1, 1)
+    gen = Generator(z_dim=z_dim, im_chan=3)
+    noise = torch.rand(128, z_dim)
     print(noise.shape)
-    tmp = gen.gen_layer0(noise)
-    print(tmp.shape)
-    tmp = gen.gen_layer1(tmp)
-    print(tmp.shape)
-    tmp = gen.gen_layer2(tmp)
-    print(tmp.shape)
-    tmp = gen.gen_layer3(tmp)
-    print(tmp.shape)
-    tmp = gen.gen_layer4(tmp)
-    print(tmp.shape)
+    # tmp = gen.gen_layer0(noise)
+    # print(tmp.shape)
+    # tmp = gen.gen_layer1(tmp)
+    # print(tmp.shape)
+    # tmp = gen.gen_layer2(tmp)
+    # print(tmp.shape)
+    # tmp = gen.gen_layer3(tmp)
+    # print(tmp.shape)
+    # tmp = gen.gen_layer4(tmp)
+    # print(tmp.shape)
+    print(gen(noise).shape)

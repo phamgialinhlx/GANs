@@ -8,11 +8,8 @@ from torchmetrics import MaxMetric, MeanMetric
 from torchmetrics.classification.accuracy import Accuracy
 
 import hydra
-import wandb
 
-def get_noise(n_samples, z_dim, device='cpu'):
-    return torch.randn(n_samples, z_dim, 1, 1, device=device)
-
+from utils.noise import get_noise 
 
 def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
@@ -45,7 +42,7 @@ class DCGAN(LightningModule):
         self.disc_loss = MeanMetric()
 
         # loss function
-        self.criterion = torch.nn.BCEWithLogitsLoss()
+        self.criterion = torch.nn.BCELoss()
 
     def forward(self, x: torch.Tensor):
         return self.gen(x)
@@ -83,7 +80,10 @@ class DCGAN(LightningModule):
 
     def training_step(self, batch, batch_idx, optimizer_idx):
         # Flatten the batch of real images from the dataset
-        real = batch[0]
+        if (len(batch) == 2):
+            real, _ = batch
+        else:
+            real = batch
         if (optimizer_idx == 0):
             disc_loss = self.get_disc_loss(real, len(real))
             self.disc_loss(disc_loss)
@@ -97,8 +97,8 @@ class DCGAN(LightningModule):
 
 
     def configure_optimizers(self):
-        opt_g = torch.optim.Adam(self.gen.parameters(), self.hparams.lr, betas=(0.5, 0.9999))
         opt_d = torch.optim.Adam(self.disc.parameters(), self.hparams.lr, betas=(0.5, 0.9999))
+        opt_g = torch.optim.Adam(self.gen.parameters(), self.hparams.lr, betas=(0.5, 0.9999))
 
         return [{"optimizer": opt_d}, {"optimizer": opt_g}]
 
@@ -111,3 +111,5 @@ if __name__ == "__main__":
     root = pyrootutils.setup_root(__file__, pythonpath=True)
     cfg = omegaconf.OmegaConf.load(root / "configs" / "model" / "dcgan.yaml")
     _ = hydra.utils.instantiate(cfg)
+    print(_.gen)
+    print(_.disc)

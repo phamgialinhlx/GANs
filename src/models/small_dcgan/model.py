@@ -14,6 +14,14 @@ def get_noise(n_samples, z_dim, device='cpu'):
     return torch.randn(n_samples, z_dim, device=device)
 
 
+def weights_init(m):
+    if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
+        torch.nn.init.normal_(m.weight, 0.0, 0.02)
+    if isinstance(m, nn.BatchNorm2d):
+        torch.nn.init.normal_(m.weight, 0.0, 0.02)
+        torch.nn.init.constant_(m.bias, 0)
+
+
 class DCGAN(LightningModule):
 
     def __init__(
@@ -89,8 +97,8 @@ class DCGAN(LightningModule):
 
 
     def configure_optimizers(self):
-        opt_g = torch.optim.Adam(self.gen.parameters(), self.hparams.lr, betas=(0.5, 0.9999))
         opt_d = torch.optim.Adam(self.disc.parameters(), self.hparams.lr, betas=(0.5, 0.9999))
+        opt_g = torch.optim.Adam(self.gen.parameters(), self.hparams.lr, betas=(0.5, 0.9999))
 
         return [{"optimizer": opt_d}, {"optimizer": opt_g}]
 
@@ -103,3 +111,4 @@ if __name__ == "__main__":
     root = pyrootutils.setup_root(__file__, pythonpath=True)
     cfg = omegaconf.OmegaConf.load(root / "configs" / "model" / "small_dcgan.yaml")
     _ = hydra.utils.instantiate(cfg)
+    print(_.gen)

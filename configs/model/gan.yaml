@@ -4,9 +4,10 @@ _target_: src.models.gan.model.GAN
   # _target_: torch.optim.Adam
   # _partial  _: true
 
+
 gen:
   _target_: src.models.gan.generator.Generator
-  z_dim: 64
+  z_dim: ${model.z_dim}
   im_dim: 784
   hidden_dim: 128
 
@@ -15,6 +16,6 @@ disc:
   im_dim: 784
   hidden_dim: 128
 
-lr: 0.00001
 z_dim: 64
+lr: 0.00001
 device: 'cuda'
