@@ -37,4 +37,7 @@ class WandbCallback(Callback):
         
 
     def on_train_batch_end(self, trainer: "pl.Trainer", pl_module: "pl.LightningModule", outputs: Any, batch: Any, batch_idx: int) -> None:
-        self.last_batch = batch[0]
+        if (len(batch) == 2):
+            self.last_batch, _ = batch
+        else:
+            self.last_batch = batch

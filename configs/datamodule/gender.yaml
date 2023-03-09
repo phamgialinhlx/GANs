@@ -3,7 +3,7 @@ _target_: src.datamodules.gender_datamodule.GenderDataModule
 data_dir: ${paths.data_dir}
 img_dims: 3
 img_size: 64
-batch_size: 64
+batch_size: 128
 num_workers: 12
 
 transform:
