@@ -6,7 +6,8 @@ from torch.optim import Adam
 from pytorch_lightning import LightningModule
 from torchmetrics import MaxMetric, MeanMetric
 from torchmetrics.classification.accuracy import Accuracy
-from src.utils.gan_utils import get_noise
+
+from src.utils.gan_utils import get_noise, get_one_hot_labels, combine_vectors
 
 import hydra
 import wandb
@@ -19,7 +20,7 @@ def weights_init(m):
         torch.nn.init.constant_(m.bias, 0)
 
 
-class DCGAN(LightningModule):
+class CGAN(LightningModule):
 
     def __init__(
         self,
@@ -27,6 +28,7 @@ class DCGAN(LightningModule):
         disc: torch.nn.Module,
         lr: float,
         z_dim: int = 10,
+        n_classes: int = 10,
         device='cpu'
     ):
         super().__init__()
@@ -47,47 +49,47 @@ class DCGAN(LightningModule):
     def forward(self, x: torch.Tensor):
         return self.gen(x)
 
-    def get_disc_loss(self, real, num_images):
-        # Create noise vectors and generate a batch (num_images) of fake images. 
-        noise = get_noise(num_images, self.hparams.z_dim, device=self.device)
-        fake = self.gen(noise)
-
-        # Get the discriminator's prediction of the fake image 
-        # and calculate the loss.
-        fake_pred = self.disc(fake.detach())
-        
-        # Get the discriminator's prediction of the real image and calculate the loss.
-        real_pred = self.disc(real)
-
-        # Calculate the discriminator's loss by averaging the real 
-        # and fake loss and set it to disc_loss.
-        fake_loss = self.criterion(fake_pred, torch.zeros_like(fake_pred))
-        real_loss = self.criterion(real_pred, torch.ones_like(real_pred))
-        disc_loss = (fake_loss + real_loss) / 2
-
-        return disc_loss
-
-    def get_gen_loss(self, num_images): 
-        # Create noise vectors and generate a batch of fake images. 
-        noise = get_noise(num_images, self.hparams.z_dim, device=self.device)
-        fake = self.gen(noise)
-
-        # Get the discriminator's prediction of the fake image.
-        fake_pred = self.disc(fake)
-        # Calculate the generator's loss.
-        gen_loss = self.criterion(fake_pred, torch.ones_like(fake_pred))
-        return gen_loss
-
     def training_step(self, batch, batch_idx, optimizer_idx):
         # Flatten the batch of real images from the dataset
-        real = batch[0]
-        if (optimizer_idx == 0):
-            disc_loss = self.get_disc_loss(real, len(real))
+        if len(batch) == 2:
+            real, labels = batch
+        else:
+            real = batch 
+        one_hot_labels = get_one_hot_labels(labels, self.hparams.n_classes) #[N, C]
+        image_one_hot_labels = one_hot_labels[:, :, None, None] #[N, C, 1, 1]
+        image_one_hot_labels = image_one_hot_labels.repeat(1, 1, real.shape[-2], real.shape[-1]) #[N, C, H, W]
+
+        if (optimizer_idx == 0): # get discriminator loss
+            noise = get_noise(len(real), self.hparams.z_dim, device=self.device)
+            noise_and_labels = combine_vectors(noise, one_hot_labels)
+
+            fake = self.gen(noise_and_labels)
+
+            fake_image_and_labels = combine_vectors(fake, image_one_hot_labels)
+            real_image_and_labels = combine_vectors(real, image_one_hot_labels)
+
+            fake_pred = self.disc(fake_image_and_labels.detach())
+            real_pred = self.disc(real_image_and_labels)
+
+            fake_loss = self.criterion(fake_pred, torch.zeros_like(fake_pred))
+            real_loss = self.criterion(real_pred, torch.ones_like(real_pred))
+
+            disc_loss = (fake_loss + real_loss) / 2
             self.disc_loss(disc_loss)
             self.log("disc_loss", self.disc_loss, on_step=False, on_epoch=True, prog_bar=True)
             return disc_loss
-        else:
-            gen_loss = self.get_gen_loss(len(real))
+        else: # get generator loss
+            noise = get_noise(len(real), self.hparams.z_dim, device=self.device)
+            noise_and_labels = combine_vectors(noise, one_hot_labels)
+            
+            fake = self.gen(noise_and_labels)
+
+            fake_image_and_labels = combine_vectors(fake, image_one_hot_labels)
+
+            # Get the discriminator's prediction of the fake image.
+            fake_pred = self.disc(fake_image_and_labels)
+            # Calculate the generator's loss.
+            gen_loss = self.criterion(fake_pred, torch.ones_like(fake_pred))
             self.gen_loss(gen_loss)
             self.log("gen_loss", self.gen_loss, on_step=False, on_epoch=True, prog_bar=True)
             return gen_loss
@@ -106,6 +108,6 @@ if __name__ == "__main__":
     import pyrootutils
 
     root = pyrootutils.setup_root(__file__, pythonpath=True)
-    cfg = omegaconf.OmegaConf.load(root / "configs" / "model" / "small_dcgan.yaml")
+    cfg = omegaconf.OmegaConf.load(root / "configs" / "model" / "cgan.yaml")
     _ = hydra.utils.instantiate(cfg)
     print(_.gen)

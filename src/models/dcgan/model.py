@@ -9,7 +9,7 @@ from torchmetrics.classification.accuracy import Accuracy
 
 import hydra
 
-from utils.noise import get_noise 
+from src.utils.gan_utils import get_noise 
 
 def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):

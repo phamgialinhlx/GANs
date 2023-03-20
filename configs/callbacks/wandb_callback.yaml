@@ -4,6 +4,7 @@ wandb_callback:
   batch_size: 128
   im_chan: 1
   img_size: 28
+  use_fixed_noise: False
   # z_dim: 100
   # batch_size: 128
   # im_chan: 1
