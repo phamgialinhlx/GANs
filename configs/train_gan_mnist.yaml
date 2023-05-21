@@ -31,7 +31,7 @@ model:
   gen:
     im_chan: ${datamodule.img_dims}
   disc:
-    im_chan: ${datamodule.img_dims}
+    im_chan: 11 # ${datamodule.img_dims}
 
 callbacks:
   wandb_callback:
