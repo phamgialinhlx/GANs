@@ -38,7 +38,7 @@ class Discriminator(nn.Module):
 
 if __name__ == "__main__":
     disc = Discriminator(hidden_dim=64)
-    noise = torch.rand(128, 1, 64, 64)
+    noise = torch.rand(128, 1, 28, 28)
     print(noise.shape)
     # tmp = disc.disc_layer0(noise)
     # print(tmp.shape)

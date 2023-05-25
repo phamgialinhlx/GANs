@@ -39,20 +39,19 @@ Train model with default configuration
 
 ```bash
 # train on CPU
-python src/train.py trainer=cpu
+python src/train_gan.py trainer=cpu
 
 # train on GPU (default)
-python src/train.py 
-```
-
-Train model with chosen experiment configuration from [configs/experiment/](configs/experiment/)
-
-```bash
-python src/train.py experiment=experiment_name.yaml
+python src/train_gan.py 
 ```
 
 You can override any parameter from command line like this
 
 ```bash
-python src/train.py trainer.max_epochs=20 datamodule.batch_size=64
+# train on FashionMNIST dataset
+python src/train_gan.py datamodule=fashion_mnist
+# use cGAN model
+python src/train_gan.py model=cgan
+# use DCGAN model with small architecture (image size: 28 x 28)
+python src/train_gan.py model=small_dcgan 
 ```

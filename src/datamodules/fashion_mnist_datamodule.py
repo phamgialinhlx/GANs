@@ -11,8 +11,10 @@ class FASHIONMNISTDataModule(LightningDataModule):
     def __init__(
         self,
         data_dir: str = "data/",
-        img_dims:int = 1,
+        img_dims: int = 1,
+        img_size: int = 28, 
         batch_size: int = 128,
+        n_classes: int = 10,
         num_workers: int = 0,
         transform: Tensor = None,
     ):
@@ -51,6 +53,9 @@ class FASHIONMNISTDataModule(LightningDataModule):
             batch_size=self.hparams.batch_size,
             num_workers=self.hparams.num_workers,
         )
+    
+    def get_n_classes(self):
+        return self.hparams.n_classes
 
 if __name__ == "__main__":
     import hydra
