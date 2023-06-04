@@ -35,6 +35,7 @@ class DCGAN(LightningModule):
         # also ensures init params will be stored in ckpt
         self.save_hyperparameters(logger=False, ignore=['gen', 'disc'])
 
+        self.automatic_optimization = False
         self.gen = gen.apply(weights_init)
         self.disc = disc.apply(weights_init)
 
@@ -55,7 +56,7 @@ class DCGAN(LightningModule):
         # Get the discriminator's prediction of the fake image 
         # and calculate the loss.
         fake_pred = self.disc(fake.detach())
-        
+
         # Get the discriminator's prediction of the real image and calculate the loss.
         real_pred = self.disc(real)
 
@@ -78,23 +79,30 @@ class DCGAN(LightningModule):
         gen_loss = self.criterion(fake_pred, torch.ones_like(fake_pred))
         return gen_loss
 
-    def training_step(self, batch, batch_idx, optimizer_idx):
+    def training_step(self, batch, batch_idx):
         # Flatten the batch of real images from the dataset
         if (len(batch) == 2):
             real, _ = batch
         else:
             real = batch
-        if (optimizer_idx == 0):
-            disc_loss = self.get_disc_loss(real, len(real))
-            self.disc_loss(disc_loss)
-            self.log("disc_loss", self.disc_loss, on_step=False, on_epoch=True, prog_bar=True)
-            return disc_loss
-        else:
-            gen_loss = self.get_gen_loss(len(real))
-            self.gen_loss(gen_loss)
-            self.log("gen_loss", self.gen_loss, on_step=False, on_epoch=True, prog_bar=True)
-            return gen_loss
 
+        opt_g, opt_d = self.optimizers()
+
+        disc_loss = self.get_disc_loss(real, len(real))
+        self.disc_loss(disc_loss)
+        self.log("disc_loss", self.disc_loss, on_step=False, on_epoch=True, prog_bar=True)
+
+        opt_d.zero_grad()
+        self.manual_backward(disc_loss)
+        opt_d.step()
+
+        gen_loss = self.get_gen_loss(len(real))
+        self.gen_loss(gen_loss)
+        self.log("gen_loss", self.gen_loss, on_step=False, on_epoch=True, prog_bar=True)
+
+        opt_g.zero_grad()
+        self.manual_backward(gen_loss)
+        opt_g.step()
 
     def configure_optimizers(self):
         opt_d = torch.optim.Adam(self.disc.parameters(), self.hparams.lr, betas=(0.5, 0.9999))

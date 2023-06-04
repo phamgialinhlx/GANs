@@ -38,7 +38,7 @@ import hydra
 import pytorch_lightning as pl
 from omegaconf import DictConfig
 from pytorch_lightning import Callback, LightningDataModule, LightningModule, Trainer
-from pytorch_lightning.loggers import LightningLoggerBase
+from pytorch_lightning.loggers import Logger
 from pytorch_lightning.loggers import WandbLogger
 from src import utils
 
@@ -64,7 +64,7 @@ def main(cfg: DictConfig):
     log.info("Instantiating loggers...")
     # wandb_logger = WandbLogger(project=cfg.wandb.project)
     # logger: List[LightningLoggerBase] = utils.instantiate_loggers(cfg.get("logger"))
-    logger: List[LightningLoggerBase] = utils.instantiate_loggers(cfg.get("logger"))
+    logger: List[Logger] = utils.instantiate_loggers(cfg.get("logger"))
 
     logger[0].watch(model)
     

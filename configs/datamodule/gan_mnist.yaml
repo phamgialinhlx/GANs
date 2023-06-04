@@ -6,9 +6,9 @@ num_workers: 0
 transform:
   _target_: torchvision.transforms.Compose
   transforms:
-    - _target_: torchvision.transforms.RandomAffine
-      degrees: 20
-      translate: [0.2, 0.2]
+    # - _target_: torchvision.transforms.RandomAffine
+    #   degrees: 20
+    #   translate: [0.2, 0.2]
     - _target_: torchvision.transforms.ToTensor
     - _target_: torchvision.transforms.Normalize
       mean: [0.0,]

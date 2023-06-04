@@ -26,7 +26,7 @@ class GAN(LightningModule):
         # this line allows to access init params with 'self.hparams' attribute
         # also ensures init params will be stored in ckpt
         self.save_hyperparameters(logger=False, ignore=['gen', 'disc'])
-
+        self.automatic_optimization = False
         self.gen = gen
         self.disc = disc
 
@@ -67,17 +67,26 @@ class GAN(LightningModule):
         gen_loss = self.criterion(fake_pred, torch.ones_like(fake_pred))
         return gen_loss
 
-    def training_step(self, batch, batch_idx, optimizer_idx):
+    def training_step(self, batch, batch_idx):
         # Flatten the batch of real images from the dataset
+        opt_g, opt_d = self.optimizers()
         real = batch[0].view(len(batch[0]), -1)
-        if (optimizer_idx == 0):
-            gen_loss = self.get_gen_loss(len(real))
-            self.log("gen_loss", gen_loss, on_step=False, on_epoch=True, prog_bar=True)
-            return gen_loss
-        else:
-            disc_loss = self.get_disc_loss(real, len(real))
-            self.log("disc_loss", disc_loss, on_step=False, on_epoch=True, prog_bar=True)
-            return disc_loss
+
+        gen_loss = self.get_gen_loss(len(real))
+        self.log("gen_loss", gen_loss, on_step=False, on_epoch=True, prog_bar=True)
+
+        opt_g.zero_grad()
+        self.manual_backward(gen_loss)
+        opt_g.step()
+
+        disc_loss = self.get_disc_loss(real, len(real))
+        self.log("disc_loss", disc_loss, on_step=False, on_epoch=True, prog_bar=True)
+
+        opt_d.zero_grad()
+        self.manual_backward(disc_loss)
+        opt_d.step()
+        
+        # return gen_loss, disc_loss
 
     def test_step(self, batch: Any, batch_idx: int):
         pass
