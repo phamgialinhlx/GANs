@@ -104,7 +104,7 @@ class DCGAN(LightningModule):
         opt_d = torch.optim.Adam(self.disc.parameters(), self.hparams.lr, betas=(0.5, 0.9999))
         opt_g = torch.optim.Adam(self.gen.parameters(), self.hparams.lr, betas=(0.5, 0.9999))
 
-        return [{"optimizer": opt_d}, {"optimizer": opt_g}]
+        return [{"optimizer": opt_g}, {"optimizer": opt_d}]
 
 
 if __name__ == "__main__":
